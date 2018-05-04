@@ -4,7 +4,7 @@ import GroupMember from "./GroupMember";
 
 export default props => (
   <div>
-    <EachChat groupName="Group Name" />
     <GroupMember />
+    <EachChat />
   </div>
 );

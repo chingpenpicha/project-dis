@@ -5,13 +5,16 @@ import { connect } from "react-redux";
 import { Layout, Menu, Icon, Input, Button, List, Avatar } from "antd";
 const { Content, Sider } = Layout;
 
-const listData = [];
-
 const mapStateToProps = state => {
   return {
     userInformation: state.login.userInformation,
     queryGroup: state.chat.queryGroup,
-    userGroup: state.chat.userGroup
+    userGroup: state.chat.userGroup,
+    allGroup: state.chat.allGroup,
+    rowSelected: state.chat.rowSelected,
+    memberInGroup: state.chat.memberInGroup,
+    currentGroup: state.chat.currentGroup,
+    unreadMsg: state.chat.unreadMsg
   };
 };
 
@@ -22,10 +25,11 @@ class EachChat extends React.Component {
     super(props);
 
     this.state = {
-      message: ""
+      message: "",
+      listData: []
     };
 
-    this.socket = io("localhost:5000");
+    this.socket = io("localhost:8000");
 
     this.socket.on("RECEIVE_MESSAGE", function(data) {
       addMessage(data);
@@ -33,29 +37,33 @@ class EachChat extends React.Component {
 
     const addMessage = res => {
       console.log(res);
-      //  this.setState({ messages: [...this.state.messages, data] });
-      listData.push({
-        title: `${res.data.author}`,
-        avatar: `${(
+
+      const a = [];
+      a.push({
+        title: res.author,
+        avatar: (
           <Avatar
             style={{
-              backgroundColor: `${res.data.color}`,
+              backgroundColor: res.color,
               verticalAlign: "middle"
             }}
             size="large"
           >
-            {res.data.author.substring(0, 1)}
+            {res.author.substring(0, 1)}
           </Avatar>
-        )}`,
-        description: `${res.time}`,
-        content: `${res.data.message}`
+        ),
+        description: res.time,
+        content: res.message
       });
+
+      this.setState({ listData: [...this.state.listData, ...a] });
       console.log(this.state.messages);
     };
 
     this.sendMessage = ev => {
       ev.preventDefault();
       this.socket.emit("SEND_MESSAGE", {
+        groupName: this.props.currentGroup,
         author: this.props.userInformation.username,
         color: this.props.userInformation.color,
         message: this.state.message
@@ -63,71 +71,105 @@ class EachChat extends React.Component {
       this.setState({ message: "" });
     };
   }
+  componentDidMount() {
+    this.socket.emit("joinroom", {
+      groupName: this.props.currentGroup
+    });
+
+    const unreadMsgj = this.props.unreadMsg;
+    const a = [];
+    for (let i = 0; i < unreadMsgj.length; i++) {
+      a.push({
+        title: unreadMsgj[i].userId,
+        avatar: (
+          <Avatar
+            style={{
+              backgroundColor: unreadMsgj[i].color,
+              verticalAlign: "middle"
+            }}
+            size="large"
+          >
+            {unreadMsgj[i].userId.substring(0, 1)}
+          </Avatar>
+        ),
+        description: unreadMsgj[i].timeStamp,
+        content: unreadMsgj[i].text
+      });
+    }
+
+    this.setState({ listData: [...this.state.listData, ...a] });
+  }
+
+  componentWillUnmount() {
+    this.setState({ listData: [] });
+  }
   render() {
     const props = this.props;
     return (
-      <Layout style={{ padding: "0" }}>
-        <Layout style={{ padding: "0" }}>
-          <div
+      <div>
+        <div
+          style={{
+            backgroundColor: "#f2f3f5",
+            height: "50px",
+            width: "100%",
+            top: 65,
+            left: 200,
+            position: "fixed",
+            zIndex: 1000
+          }}
+        >
+          <h3
             style={{
-              textAlign: "left",
-              color: "gray",
-              height: "50px",
-              margin: "auto"
+              padding: "15px 0px 0px 15px"
             }}
           >
-            <h3
-              style={{
-                padding: "15px 0px 0px 15px"
-              }}
-            >
-              {props.groupName}
-            </h3>
-            <Button
-              icon="to-top"
-              style={{
-                marginLeft: -461,
-                marginTop: 3,
-                width: "72%",
-                position: "fixed",
-                marginRight: 200
-              }}
-            >
-              Load more ..
-            </Button>
-          </div>
-
-          <div
+            {this.props.currentGroup}
+          </h3>
+        </div>
+        <Layout style={{ padding: 0 }}>
+          <Layout
             style={{
-              position: "fixed",
-              bottom: 0,
-              marginLeft: 200
+              marginTop: 115,
+              marginLeft: 200,
+              marginRight: 200
             }}
           >
-            <List
+            <Content
               style={{
-                marginLeft: 50,
-                marginRight: 50
+                background: "white",
+                minWidth: "100%",
+                overflow: "auto"
               }}
-              itemLayout="horizontal"
-              dataSource={listData}
-              renderItem={item => (
-                <List.Item key={item.title}>
-                  <List.Item.Meta
-                    avatar={<Avatar src={item.avatar} />}
-                    title={item.title}
-                    description={item.description}
-                  />
-                  {item.content}
-                </List.Item>
-              )}
-            />
+            >
+              <List
+                style={{
+                  marginLeft: 50,
+                  marginRight: 50,
+                  width: "85%"
+                }}
+                itemLayout="horizontal"
+                dataSource={this.state.listData}
+                renderItem={item => (
+                  <List.Item key={item.title}>
+                    <List.Item.Meta
+                      avatar={item.avatar}
+                      title={item.title}
+                      description={item.description}
+                    />
+                    {item.content}
+                  </List.Item>
+                )}
+              />
+            </Content>
             <Input
               placeholder="Message"
               value={this.state.message}
               onChange={e => this.setState({ message: e.target.value })}
               style={{
-                width: "1040px"
+                paddingLeft: 400,
+                position: "fixed",
+                bottom: 0,
+                right: 200
               }}
               addonAfter={
                 <Button
@@ -143,9 +185,9 @@ class EachChat extends React.Component {
                 </Button>
               }
             />
-          </div>
+          </Layout>
         </Layout>
-      </Layout>
+      </div>
     );
   }
 }

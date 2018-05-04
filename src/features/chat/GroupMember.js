@@ -1,30 +1,25 @@
 import React from "react";
 import { Layout, Menu, Icon, Input, Button } from "antd";
 import { List, Avatar } from "antd";
+import { connect } from "react-redux";
+import {} from "./reducer";
+
+const enhance = connect(
+  state => ({
+    memberInGroup: state.chat.memberInGroup
+  }),
+  {}
+);
 
 const { Sider } = Layout;
 
-const data = [
-  {
-    title: "Member 1"
-  },
-  {
-    title: "Member 2"
-  },
-  {
-    title: "Member 3"
-  },
-  {
-    title: "Member 4"
-  }
-];
-
-export default props => (
+const GroupMember = props => (
   <Sider
     style={{
       theme: "light",
       background: "#f2f3f5",
-      width: 200,
+      minWidth: 200,
+      marginTop: 115,
       overflow: "auto",
       height: "100vh",
       position: "fixed",
@@ -57,7 +52,7 @@ export default props => (
 
     <List
       itemLayout="horizontal"
-      dataSource={data}
+      dataSource={props.memberInGroup}
       style={{ marginLeft: 20 }}
       renderItem={item => (
         <List.Item>
@@ -65,18 +60,20 @@ export default props => (
             avatar={
               <Avatar
                 style={{
-                  backgroundColor: "#f56a00",
+                  backgroundColor: item.color,
                   verticalAlign: "middle"
                 }}
                 size="small"
               >
-                Name
+                {item.userId.substring(0, 1)}
               </Avatar>
             }
-            title={item.title}
+            title={item.userId}
           />
         </List.Item>
       )}
     />
   </Sider>
 );
+
+export default enhance(GroupMember);

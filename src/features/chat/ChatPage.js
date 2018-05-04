@@ -1,7 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { connect } from "react-redux";
-import { getUserGroup, resetState } from "./reducer";
+import {
+  getUserGroup,
+  resetState,
+  getGroupMember,
+  getAllGroup,
+  setField,
+  createGroup,
+  getUnread,
+  onUpdate
+} from "./reducer";
 import { Layout, Menu, Icon, Button, Popover, Table, Input } from "antd";
 import { bindActionCreators } from "redux";
 
@@ -15,14 +24,24 @@ const mapStateToProps = state => {
   return {
     userInformation: state.login.userInformation,
     queryGroup: state.chat.queryGroup,
-    userGroup: state.chat.userGroup
+    userGroup: state.chat.userGroup,
+    rowSelected: state.chat.rowSelected,
+    allGroup: state.chat.allGroup,
+    currentGroup: state.chat.currentGroup,
+    newGroupName: state.chat.newGroupName
   };
 };
 
 const mapDispatchToProps = (dispatch, props) => {
   return {
     getUserGroup: bindActionCreators(getUserGroup, dispatch),
-    resetState: bindActionCreators(resetState, dispatch)
+    resetState: bindActionCreators(resetState, dispatch),
+    getGroupMember: bindActionCreators(getGroupMember, dispatch),
+    getAllGroup: bindActionCreators(getAllGroup, dispatch),
+    setField: bindActionCreators(setField, dispatch),
+    createGroup: bindActionCreators(createGroup, dispatch),
+    getUnread: bindActionCreators(getUnread, dispatch),
+    onUpdate: bindActionCreators(onUpdate, dispatch)
   };
 };
 
@@ -33,17 +52,6 @@ const columns = [
   }
 ];
 
-const allGroup = [];
-for (let i = 0; i < 6; i++) {
-  allGroup.push({
-    key: i,
-    name: `Group ${i}`,
-    inGroup: true
-  });
-}
-
-const content = <div />;
-
 class ChatPage extends React.Component {
   constructor(props) {
     super(props);
@@ -52,9 +60,7 @@ class ChatPage extends React.Component {
 
   state = {
     visible: false,
-    selectedRows: [],
-    currentGroup: allGroup,
-    groupName: "Group Name"
+    selectedRows: this.props.rowSelected
   };
   onSelectChange = selectedRows => {
     console.log("selectedRowKeys changed: ", selectedRows);
@@ -72,36 +78,31 @@ class ChatPage extends React.Component {
     if (this.props.queryGroup) {
       this.props.getUserGroup(this.props.userInformation.username);
     }
-    const { selectedRows, currentGroup, groupName } = this.state;
+    const { selectedRows } = this.state;
 
     const rowSelection = {
-      selectedRows,
-      onChange: this.onSelectChange,
-      hideDefaultSelections: true,
-      selections: [
-        {
-          key: "all-data",
-          text: "Select All Data",
-          onSelect: () => {
-            this.setState({
-              selectedRows: [...allGroup.keys()] // 0...45
-            });
-          }
-        }
-      ],
-      onSelection: this.onSelection
+      selectedRows: this.props.rowSelected,
+      onChange: this.onSelectChange
     };
 
     return (
-      <Layout>
+      <Layout
+        style={{
+          position: "fixed",
+          width: "100%",
+          zIndex: 1000,
+          top: 0
+        }}
+      >
         <Header
           style={{
             backgroundImage: `url(${Background})`,
             backgroundSize: "cover",
-            overflow: "hidden",
-            textAlign: "center"
+            textAlign: "center",
+            height: 65,
+            left: 0,
+            top: 0
           }}
-          className="header"
         >
           <div
             style={{
@@ -165,7 +166,10 @@ class ChatPage extends React.Component {
                   content={
                     <div>
                       <Input
-                        placeholder="Create New Group"
+                        placeholder="Enter Group Name"
+                        onChange={e =>
+                          this.props.setField("newGroupName", e.target.value)
+                        }
                         addonAfter={
                           <Button
                             type="primary"
@@ -176,19 +180,34 @@ class ChatPage extends React.Component {
                               marginLeft: -11,
                               marginRight: -11
                             }}
+                            onClick={() => {
+                              this.props.createGroup(
+                                this.props.userInformation.username,
+                                this.props.newGroupName
+                              );
+                              this.props.getAllGroup(
+                                this.props.userInformation.username
+                              );
+                            }}
                           />
                         }
                       />
                       <Table
                         rowSelection={rowSelection}
                         columns={columns}
-                        dataSource={allGroup}
+                        dataSource={this.props.allGroup}
                       />
 
                       <Button
                         type="primary"
                         style={{ width: "100%" }}
-                        onClick={this.handleCurrentGroup}
+                        onClick={() =>
+                          this.props.onUpdate(
+                            this.props.userInformation.username,
+                            this.props.allGroup,
+                            this.props.selectedRows
+                          )
+                        }
                       >
                         Save
                       </Button>
@@ -206,6 +225,12 @@ class ChatPage extends React.Component {
                     icon="setting"
                     size="small"
                     style={{ marginLeft: 60 }}
+                    onClick={() => {
+                      this.props.getAllGroup(
+                        this.props.userInformation.username
+                      );
+                      this.onSelectChange(this.props.rowSelected);
+                    }}
                   />
                 </Popover>
               </h3>
@@ -217,11 +242,18 @@ class ChatPage extends React.Component {
               style={{
                 height: "100%"
               }}
-              onSelect={e => this.setState({ groupName: e.item })}
+              onSelect={e => {
+                this.props.getGroupMember(e.key);
+                this.props.setField("currentGroup", e.key);
+                this.props.getUnread(
+                  this.props.userInformation.username,
+                  e.key
+                );
+              }}
             >
               {this.props.userGroup.map(e => (
-                <Menu.Item className="menu-item" key={e.key}>
-                  <Link to={"/chat/" + e.key} />
+                <Menu.Item className="menu-item" key={e.groupName}>
+                  <Link to={"/chat/" + e.groupName} />
                   {e.groupName}
                 </Menu.Item>
               ))}
