@@ -52,7 +52,7 @@ var id = setInterval(checkServerStatus, 1000);
 app.get('/selServ', function(req,res){
   checkServerStatus();
   console.log('destination port is ' + destport);
-   res.send({'destination' : 'http://localhost:'+destPort});
+   res.send({'destination' : destPort});
 });
 
 //socket for connection to the checker

@@ -22,6 +22,9 @@ const GET_ALL_GROUP_FULFILLED = "GET_ALL_GROUP_FULFILLED";
 const GET_UNREAD = "GET_UNREAD";
 const GET_UNREAD_FULFILLED = "GET_UNREAD_FULFILLED";
 
+const CONNECT = "CONNECT";
+const CONNECT_FULFILLED = "CONNECT_FULFILLED";
+
 const initialState = {
   menuChange: false,
   userGroup: [{ groupName: "" }],
@@ -32,13 +35,12 @@ const initialState = {
   currentGroup: "",
   unreadMsg: [],
   newGroupName: "",
-  socket : io("10.207.179.194:8000"),
-  port1: io("10.207.179.194:8000"),
-  port2: io("10.207.179.194:8000")
+  socket: io("10.207.176.187:8000"),
+  chatPort: "8000"
 };
 
 export default (state = initialState, action) => {
-  console.log(action)
+  console.log(action);
   switch (action.type) {
     case RESET_STATE:
       return {
@@ -61,6 +63,13 @@ export default (state = initialState, action) => {
         memberInGroup: action.payload.groupMember
       };
 
+    case CONNECT_FULFILLED:
+      return {
+        ...state,
+        chatPort: action.payload.destination,
+        socket: io(`10.207.176.187:${action.payload.destination}`)
+      };
+
     case ON_UPDATE_FULFILLED:
       return {
         ...state,
@@ -69,10 +78,10 @@ export default (state = initialState, action) => {
       };
 
     case GET_UNREAD_FULFILLED:
-        return {
-          ...state,
-          unreadMsg: action.payload
-        };
+      return {
+        ...state,
+        unreadMsg: action.payload
+      };
     case GET_USER_GROUP_FULFILLED:
       if (action.payload.valid)
         return {
@@ -94,10 +103,10 @@ export const resetState = () => ({
   type: RESET_STATE
 });
 
-export const getAllGroup = username => ({
+export const getAllGroup = (username, chatPort) => ({
   type: GET_ALL_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/getUserMember", {
+    .post(`http://10.207.176.187:${chatPort}/getUserMember`, {
       userId: username
     })
     .then(function(response) {
@@ -106,10 +115,10 @@ export const getAllGroup = username => ({
     })
 });
 
-export const onUpdate = (username, allgroup, rowselect) => ({
+export const onUpdate = (username, allgroup, rowselect, chatPort) => ({
   type: ON_UPDATE,
   payload: axios
-    .post("http://10.207.179.194:8000/update", {
+    .post(`http://10.207.176.187:${chatPort}/update`, {
       userId: username,
       allgroup: allgroup,
       index: rowselect
@@ -120,10 +129,19 @@ export const onUpdate = (username, allgroup, rowselect) => ({
     })
 });
 
-export const getUserGroup = username => ({
+export const onConnectionChat = () => ({
+  type: CONNECT,
+  payload: axios
+    .get("http://10.207.176.187:4999/selServ")
+    .then(function(response) {
+      return response.data;
+    })
+});
+
+export const getUserGroup = (username, chatPort) => ({
   type: GET_USER_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/getUserGroup", {
+    .post(`http://10.207.176.187:${chatPort}/getUserGroup`, {
       username: username
     })
     .then(function(response) {
@@ -132,10 +150,10 @@ export const getUserGroup = username => ({
     })
 });
 
-export const createGroup = (username, group) => ({
+export const createGroup = (username, group, chatPort) => ({
   type: CREATE_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/createGroup", {
+    .post(`http://10.207.176.187:${chatPort}/createGroup`, {
       groupName: group,
       userId: username
     })
@@ -145,10 +163,10 @@ export const createGroup = (username, group) => ({
     })
 });
 
-export const getGroupMember = groupName => ({
+export const getGroupMember = (groupName, chatPort) => ({
   type: GET_GROUP_MEMBER,
   payload: axios
-    .post("http://10.207.179.194:8000/getGroupMember", {
+    .post(`http://10.207.176.187:${chatPort}/getGroupMember`, {
       groupName: groupName
     })
     .then(function(response) {
@@ -157,10 +175,10 @@ export const getGroupMember = groupName => ({
     })
 });
 
-export const getUnread = (user, group) => ({
+export const getUnread = (user, group, chatPort) => ({
   type: GET_UNREAD,
   payload: axios
-    .post("http://10.207.179.194:8000/getUnRead", {
+    .post(`http://10.207.176.187:${chatPort}/getUnRead`, {
       userId: user,
       groupName: group
     })

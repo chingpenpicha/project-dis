@@ -11,7 +11,7 @@ const io = require('socket.io').listen(http)
 const replicate = process.argv[3]
 
 const corsOptions = {
-    origin: 'http://10.207.179.194:3000',
+    origin: 'http://10.207.176.187:3000',
     credentials: true,
 }
 
@@ -22,7 +22,7 @@ app.use(bodyParser.json())
 const config = {
     host: 'localhost',
     user: 'root',
-    password: 'Spiperafk1', /* your db password here*/
+    password: 'ching', /* your db password here*/
     database: 'chat_data'
 };
 const db = new database(config);
@@ -99,6 +99,7 @@ async function getUnRead(user, group){
         const unreadmsg = await db.query('SELECT u.userId, u.color, m.text, m.timestamp from message m natural join user u\
                                     where groupId = '+gid+' and messageId > ' +lastmsg[0].messageId+'')
         console.log(unreadmsg);
+
         return {'result' : 'success', unreadmsg}
     }catch(e){
         console.log("getUnRead : " + e);
@@ -381,6 +382,7 @@ async function updateLastMsg(group, user, messageId) {
 async function updateLeft(group, user) {
     try {
         const gid = await findGroupId(group)
+          console.log("Update : "+ gid)
         let mess = await db.query("select max(messageId) as a from message where groupId = "+gid+";");
         console.log('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
         console.log(mess)
@@ -395,7 +397,7 @@ async function updateLeft(group, user) {
 //======================end function==============================
 
 io.on('connection', function (socket) {
-    console.log('in socket io')
+    console.log('in socket io > '+ socket.conn.remoteAddress + ' port : ' + process.argv[2])
     // once a client has connected, we expect to get a ping from them saying what room they want to join
     socket.on('joinroom', (data) => {
         console.log('Join' + data.groupName)

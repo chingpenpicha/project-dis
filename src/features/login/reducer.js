@@ -6,6 +6,8 @@ const LOGIN_FULFILLED = "LOGIN_FULFILLED";
 const REGIST = "REGIST";
 const REGIST_FULFILLED = "REGIST_FULFILLED";
 const CLEAR_FIELD = "CLEAR_FIELD";
+const CONNECT = "CONNECT";
+const CONNECT_FULFILLED = "CONNECT_FULFILLED";
 
 const initialState = {
   loginPage: true,
@@ -19,7 +21,7 @@ const initialState = {
     username: "",
     color: ""
   },
-  portLog: ""
+  loginPort: "8000"
 };
 
 export default (state = initialState, action) => {
@@ -49,6 +51,12 @@ export default (state = initialState, action) => {
           loginSuccess: false
         };
 
+    case CONNECT_FULFILLED:
+      return {
+        ...state,
+        loginPort: action.payload.destination
+      };
+
     case REGIST_FULFILLED:
       return {
         ...state,
@@ -67,10 +75,10 @@ export const setField = (key, value) => ({
   value
 });
 
-export const regist = (username, password) => ({
+export const regist = (username, password, loginPort) => ({
   type: REGIST,
   payload: axios
-    .post("http://10.207.179.194:8000/regist", {
+    .post(`http://10.207.176.187:${loginPort}/regist`, {
       username: username,
       password: password
     })
@@ -79,11 +87,19 @@ export const regist = (username, password) => ({
     })
 });
 
+export const onConnection = () => ({
+  type: CONNECT,
+  payload: axios
+    .get("http://10.207.176.187:4999/selServ")
+    .then(function(response) {
+      return response.data;
+    })
+});
 
-export const login = (username, password) => ({
+export const login = (username, password, loginPort) => ({
   type: LOGIN,
   payload: axios
-    .post("http://10.207.179.194:8000/login", {
+    .post(`http://10.207.176.187:${loginPort}/login`, {
       username: username,
       password: password
     })

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import { connect } from "react-redux";
-import { setField, login, regist, clearField } from "./reducer";
+import { setField, login, regist, clearField, onConnection } from "./reducer";
 import { Layout, Menu, Icon, Button } from "antd";
 import { bindActionCreators } from "redux";
 import { WrappedNormalLoginForm } from "./NormalLoginForm";
@@ -20,7 +20,8 @@ const mapStateToProps = state => {
     passwordReg: state.login.passwordReg,
     password: state.login.password,
     loginSuccess: state.login.loginSuccess,
-    registSuccess: state.login.registSuccess
+    registSuccess: state.login.registSuccess,
+    loginPort: state.login.loginPort
   };
 };
 
@@ -29,7 +30,8 @@ const mapDispatchToProps = (dispatch, props) => {
     setField: bindActionCreators(setField, dispatch),
     login: bindActionCreators(login, dispatch),
     regist: bindActionCreators(regist, dispatch),
-    clearField: bindActionCreators(clearField, dispatch)
+    clearField: bindActionCreators(clearField, dispatch),
+    onConnection: bindActionCreators(onConnection, dispatch)
   };
 };
 
@@ -37,6 +39,10 @@ class LoginPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+  }
+
+  componentDidMount() {
+    this.props.onConnection();
   }
 
   render() {
@@ -75,7 +81,11 @@ class LoginPage extends React.Component {
             <WrappedNormalLoginForm
               setField={(key, value) => this.props.setField(key, value)}
               login={() =>
-                this.props.login(this.props.username, this.props.password)
+                this.props.login(
+                  this.props.username,
+                  this.props.password,
+                  this.props.loginPort
+                )
               }
               clearField={() => this.props.clearField()}
             />
@@ -121,7 +131,8 @@ class LoginPage extends React.Component {
               regist={() =>
                 this.props.regist(
                   this.props.usernameReg,
-                  this.props.passwordReg
+                  this.props.passwordReg,
+                  this.props.loginPort
                 )
               }
               registSuccess={this.props.registSuccess}

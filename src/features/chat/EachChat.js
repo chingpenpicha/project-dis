@@ -1,6 +1,11 @@
 import React from "react";
 import io from "socket.io-client";
-import { getUserGroup, resetState, setField } from "./reducer";
+import {
+  getUserGroup,
+  resetState,
+  setField,
+  onConnectionChat
+} from "./reducer";
 import { connect } from "react-redux";
 import { Layout, Menu, Icon, Input, Button, List, Avatar } from "antd";
 const { Content, Sider } = Layout;
@@ -16,11 +21,17 @@ const mapStateToProps = state => {
     currentGroup: state.chat.currentGroup,
     unreadMsg: state.chat.unreadMsg,
     menuChange: state.chat.menuChange,
-    socket : state.chat.socket
+    socket: state.chat.socket,
+    chatPort: state.chat.chatPort
   };
 };
 
-const mapDispatchToProps = { getUserGroup, resetState, setField };
+const mapDispatchToProps = {
+  getUserGroup,
+  resetState,
+  setField,
+  onConnectionChat
+};
 
 class EachChat extends React.Component {
   constructor(props) {
@@ -30,14 +41,25 @@ class EachChat extends React.Component {
       message: ""
     };
 
+    this.props.socket.on("connect_error", function(data) {
+      //  console.log("socket error : change to Port > " + this.props.chatPort);
+      this.props.onConnectionChat();
+      // this.props.onConnection();
+
+      this.props.setField(
+        "socket",
+        io(`10.207.176.187:${this.props.chatPort}`)
+      );
+      console.log(this.props.socket);
+    });
+
     this.props.socket.on("RECEIVE_MESSAGE", function(data) {
       console.log("receive msg jaa");
       addMessage(data);
- 
     });
 
     const addMessage = res => {
-      console.log(res);
+      console.log("Add Msg" + res);
 
       const a = [];
       a.push({
@@ -59,16 +81,13 @@ class EachChat extends React.Component {
 
       this.props.setField("unreadMsg", [...this.props.unreadMsg, ...a]);
       console.log(this.props.unreadMsg);
-      console.log("------------")
+      console.log("------------");
       console.log(res);
-      console.log("------------")
-      res['me'] = this.props.userInformation.username
+      console.log("------------");
+      res["me"] = this.props.userInformation.username;
       console.log(res);
-      console.log(this.props.socket.emit("sun", res))
-
+      console.log(this.props.socket.emit("sun", res));
     };
-
-
 
     this.sendMessage = ev => {
       ev.preventDefault();
@@ -130,7 +149,7 @@ class EachChat extends React.Component {
                 style={{
                   marginLeft: 50,
                   marginRight: 50,
-                  marginBottom: 30,
+                  marginBottom: 20,
                   width: "85%"
                 }}
                 itemLayout="horizontal"
