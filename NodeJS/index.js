@@ -92,7 +92,7 @@ app.post('/update',(req,res)=>{
 async function getUnRead(user, group){
     try {
         const gid = await findGroupId(group)
-        const unreadmsg = await db.query('SELECT u.userId, u.colour, m.text, m.timestamp from message m natural join user u\
+        const unreadmsg = await db.query('SELECT u.userId, u.color, m.text, m.timestamp from message m natural join user u\
                                     where groupId = '+gid+' and messageId > u.messageId')
         return {'result' : 'success', unreadmsg}
     }catch(e){
