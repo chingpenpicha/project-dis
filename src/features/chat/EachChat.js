@@ -15,7 +15,8 @@ const mapStateToProps = state => {
     memberInGroup: state.chat.memberInGroup,
     currentGroup: state.chat.currentGroup,
     unreadMsg: state.chat.unreadMsg,
-    menuChange: state.chat.menuChange
+    menuChange: state.chat.menuChange,
+    socket : state.chat.socket
   };
 };
 
@@ -29,9 +30,7 @@ class EachChat extends React.Component {
       message: ""
     };
 
-    this.socket = io("10.207.179.194:8000");
-
-    this.socket.on("RECEIVE_MESSAGE", function(data) {
+    this.props.socket.on("RECEIVE_MESSAGE", function(data) {
       console.log("receive msg jaa");
       addMessage(data);
  
@@ -63,7 +62,7 @@ class EachChat extends React.Component {
       console.log("------------")
       console.log(res);
       console.log("------------")
-      console.log(this.socket.emit("sun", res))
+      console.log(this.props.socket.emit("sun", res))
 
     };
 
@@ -71,7 +70,7 @@ class EachChat extends React.Component {
 
     this.sendMessage = ev => {
       ev.preventDefault();
-      this.socket.emit("SEND_MESSAGE", {
+      this.props.socket.emit("SEND_MESSAGE", {
         groupName: this.props.currentGroup,
         author: this.props.userInformation.username,
         color: this.props.userInformation.color,
@@ -84,7 +83,7 @@ class EachChat extends React.Component {
   render() {
     const props = this.props;
     if (props.menuChange) {
-      this.socket.emit("joinroom", {
+      this.props.socket.emit("joinroom", {
         groupName: props.currentGroup
       });
       this.props.setField("menuChange", false);

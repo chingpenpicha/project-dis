@@ -29,7 +29,8 @@ const mapStateToProps = state => {
     allGroup: state.chat.allGroup,
     currentGroup: state.chat.currentGroup,
     newGroupName: state.chat.newGroupName,
-    menuChange: state.chat.menuChange
+    menuChange: state.chat.menuChange,
+    socket : state.chat.socket
   };
 };
 
@@ -243,6 +244,9 @@ class ChatPage extends React.Component {
               }}
               onSelect={e => {
                 this.props.getGroupMember(e.key);
+                this.props.socket.emit("leftgroup", {
+                  groupName:this.props.currentGroup
+                });
                 this.props.setField("currentGroup", e.key);
                 this.props.getUnread(
                   this.props.userInformation.username,

@@ -1,6 +1,7 @@
 import axios from "axios";
 import React from "react";
 import { Avatar } from "antd";
+import io from "socket.io-client";
 
 const GET_USER_GROUP = "GET_USER_GROUP";
 const GET_USER_GROUP_FULFILLED = "GET_USER_GROUP_FULFILLED";
@@ -30,7 +31,8 @@ const initialState = {
   memberInGroup: [],
   currentGroup: "",
   unreadMsg: [],
-  newGroupName: ""
+  newGroupName: "",
+  socket : io("10.207.179.194:8000"),
 };
 
 export default (state = initialState, action) => {
