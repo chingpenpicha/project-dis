@@ -33,6 +33,8 @@ const initialState = {
   unreadMsg: [],
   newGroupName: "",
   socket : io("10.207.179.194:8000"),
+  port1: io("10.207.179.194:8000"),
+  port2: io("10.207.179.194:8000")
 };
 
 export default (state = initialState, action) => {

@@ -245,7 +245,8 @@ class ChatPage extends React.Component {
               onSelect={e => {
                 this.props.getGroupMember(e.key);
                 this.props.socket.emit("leftgroup", {
-                  groupName:this.props.currentGroup
+                  groupName:this.props.currentGroup,
+                  me : this.props.userInformation.username
                 });
                 this.props.setField("currentGroup", e.key);
                 this.props.getUnread(

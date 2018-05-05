@@ -378,6 +378,20 @@ async function updateLastMsg(group, user, messageId) {
     }
 }
 
+async function updateLeft(group, user) {
+    try {
+        const gid = await findGroupId(group)
+        let mess = await db.query("select max(messageId) as a from message where groupId = "+gid+";");
+        console.log('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
+        console.log(mess)
+        await db.query('update groupmember gm set gm.messageId = ' + mess[0].a + ' where groupId = "' + gid + '" and userId = "' + user+'"')
+        return ({ 'results': 'true' })
+    } catch (e) {
+        console.log('from updateLast ' + e)
+        return ({ 'results': 'false' })
+    }
+}
+
 //======================end function==============================
 
 io.on('connection', function (socket) {
@@ -404,13 +418,15 @@ io.on('connection', function (socket) {
     })
 
     socket.on('leftgroup', (data) => {
+        console.log("ASPODJPOSJDOSNDOINSODOSANDOISNADONSOI")
+        updateLeft(data.groupName, data.me)
         socket.leave(data.groupName);
     })
 
     socket.on('sun', (data)=>{
         console.log("Response : ")
         console.log(data)
-        updateLastMsg(data.groupName, data.author, data.messageId)
+        updateLastMsg(data.groupName, data.me, data.messageId)
     })
 
 });

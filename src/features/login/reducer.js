@@ -18,7 +18,8 @@ const initialState = {
   userInformation: {
     username: "",
     color: ""
-  }
+  },
+  portLog: ""
 };
 
 export default (state = initialState, action) => {
@@ -77,6 +78,7 @@ export const regist = (username, password) => ({
       return response.data.valid;
     })
 });
+
 
 export const login = (username, password) => ({
   type: LOGIN,

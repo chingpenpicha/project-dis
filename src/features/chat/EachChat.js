@@ -62,6 +62,8 @@ class EachChat extends React.Component {
       console.log("------------")
       console.log(res);
       console.log("------------")
+      res['me'] = this.props.userInformation.username
+      console.log(res);
       console.log(this.props.socket.emit("sun", res))
 
     };
