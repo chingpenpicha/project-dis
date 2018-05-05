@@ -22,7 +22,7 @@ app.use(bodyParser.json())
 const config = {
     host: 'localhost',
     user: 'root',
-    password: 'ching', /* your db password here*/
+    password: 'Spiperafk1', /* your db password here*/
     database: 'chat_data'
 };
 const db = new database(config);
@@ -96,10 +96,11 @@ async function getUnRead(user, group){
                                     where groupId = '+gid+' and messageId > u.messageId')
         return {'result' : 'success', unreadmsg}
     }catch(e){
+        console.log("getUnRead : " + e);
         return {'result' : 'no unread message'}
     }  
 }
-
+/*
 async function update(userId,allgroup,index){
      console.log("Update : userId "+ userId )
      console.log(index+"    ")
@@ -134,7 +135,39 @@ async function update(userId,allgroup,index){
         
     }
     return{ result: 'success' }
+}*/
+
+async function update(userId, allgroup, index) {
+     /*console.log(userId)
+     console.log(allgroup)
+     console.log(index)*/
+    try{
+    for (let i = 0, k = 0; i < allgroup.length; i++) {
+        let gid = await findGroupId(allgroup[i].name)
+        const x = await db.query("select gm.userId from groupmember gm \
+        where gm.groupId ='"+ gid + "' and userId = '" + userId + "';");
+        console.log('i = '+i+' k = '+k+' next in group '+index[k])
+        if (x.length === 0 && index[k] === i) { //not currently in group -> addtogroup
+            console.log('add user '+userId+' to group '+allgroup[i].name)
+            await addmember(allgroup[i].name, userId)
+            k++;
+        }
+        else if (x.length !== 0 && index[k] === i){ //already in and wanna in
+            console.log('user '+userId+' already in group '+allgroup[i].name)
+            k++;
+        }else if(x.length !== 0 && index[k] !== i){
+            console.log('delete user '+userId+' to group '+allgroup[i].name)
+            await deleteUser(allgroup[i].name, userId)
+        }
+    }
+    return { result: 'success' }
+    }
+    catch(e){
+        console.log("update : " + e);
+        console.log(e);
+    }
 }
+
 async function deleteUser(groupName,userId){
     try{
         console.log("delete "+userId + " from :"+groupName)
@@ -153,7 +186,9 @@ async function deleteUser(groupName,userId){
 async function addmember(groupName,userId){
     console.log("Add "+userId + " into :"+groupName)
     try{
+        console.log(groupName);
         let gd = await db.query("select groupId from chat_data.group where groupName='"+groupName+"';")
+        console.log(gd);
         let mess = await db.query("select max(messageId) as a from message where groupId = "+gd[0].groupId+";");
         await db.query("insert into groupmember values ("+gd[0].groupId+",'"+userId+"',"+mess[0].a+");")
         return{valid : true}
@@ -175,6 +210,7 @@ async function getGroupMember(groupName){
             groupMember
         })
     }catch(e){
+        console.log("getGroupMember : " + e);
         return({valid : false})
     }
 }
@@ -192,6 +228,7 @@ async function deleteGroup(groupId){
             return{result : false}
         }
     }catch(e){
+        console.log("deleteGroup : " + e);
         return{result : false}
     }
 }
@@ -217,6 +254,7 @@ async function deleteGroup(groupId){
     return {group,groupin}
 }*/
 async function getUserMember(name){
+    try{
     const allgroup = await db.query("select distinct gm.groupId, \
     gm.userId,g.groupName from chat_data.group g left join groupmember gm\
       on gm.groupId=g.groupId;")
@@ -235,7 +273,11 @@ async function getUserMember(name){
     }
     
     //console.log(group)
-    return {groupna,groupin}
+    return {groupna,groupin}}
+    catch(e){
+        console.log("getUserMember : " + e);
+        return {valid : false};
+    }
 }
 
 async function getUserGroup(username){
@@ -290,16 +332,17 @@ async function login(username, pw) {
 async function createGroup(groupName,userId){
     console.log("create "+groupName + " " +userId)
     try{
-        await db.query("insert into chat_data.group (groupName) values ('"+groupName+"');").then(addmember(groupName,userId))
+        await db.query("insert into chat_data.group (groupName) values ('"+groupName+"');").then((result)=>{addmember(groupName,userId)})
         return{valid : true}
     }catch(e){
+        console.log("createGroup : " + e);
         return{valid : false}
     }
     
 }
 
 async function findGroupId(groupname){
-    return await db.query('select groupId from chat_data.group where groupname = ?', groupname).then(res => res[0])
+    return await db.query('select groupId from chat_data.group where `groupName` ="'+groupname+'";').then(res => res[0].groupId)
 }
 
 async function saveMessage(user, gn, message, time){
@@ -311,7 +354,7 @@ async function saveMessage(user, gn, message, time){
         ("'+message+'","'+time+'","'+user+'","'+gid+'");')
         return 'true';
     }catch(e){
-        console.log(e)
+        console.log("saveMessage : " +e)
         return 'false';
     }
 }
