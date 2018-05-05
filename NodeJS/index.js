@@ -11,7 +11,7 @@ const io = require('socket.io').listen(http)
 const replicate = process.argv[3]
 
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: 'http://10.207.179.194:3000',
     credentials: true,
 }
 
@@ -91,9 +91,14 @@ app.post('/update',(req,res)=>{
 
 async function getUnRead(user, group){
     try {
+        console.log(user)
+        console.log(group)
         const gid = await findGroupId(group)
-        const unreadmsg = await db.query('SELECT u.userId, u.colour, m.text, m.timestamp from message m natural join user u\
-                                    where groupId = '+gid+' and messageId > u.messageId')
+        const lastmsg = await db.query('select gm.messageId from groupmember gm where groupId = '+gid+' and userId = "'+user+'";')
+        console.log(lastmsg);
+        const unreadmsg = await db.query('SELECT u.userId, u.color, m.text, m.timestamp from message m natural join user u\
+                                    where groupId = '+gid+' and messageId > ' +lastmsg[0].messageId+'')
+        console.log(unreadmsg);
         return {'result' : 'success', unreadmsg}
     }catch(e){
         console.log("getUnRead : " + e);
@@ -342,13 +347,13 @@ async function createGroup(groupName,userId){
 }
 
 async function findGroupId(groupname){
+    console.log(groupname);
     return await db.query('select groupId from chat_data.group where `groupName` ="'+groupname+'";').then(res => res[0].groupId)
 }
 
 async function saveMessage(user, gn, message, time){
     try {
-        
-        const gid = await findGroupId(gn).then(res=>res.groupId)
+        const gid = await findGroupId(gn)
         const res = await db.query('INSERT INTO `chat_data`.`message`\
         (`text`,`timeStamp`,`userId`,`groupId`) VALUES \
         ("'+message+'","'+time+'","'+user+'","'+gid+'");')
