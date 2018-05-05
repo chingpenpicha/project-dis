@@ -42,6 +42,21 @@ const initialState = {
 export default (state = initialState, action) => {
   console.log(action);
   switch (action.type) {
+    case SWAP:
+      //console.log("INSWAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+      if (state.useIp === state.ip1)
+        return {
+          ...state,
+          useIp: "10.207.179.194:8001",
+          socket: io("10.207.179.194:8001")
+        };
+      else {
+        return {
+          ...state,
+          useIp: "10.207.179.194:8000",
+          socket: io("10.207.179.194:8000")
+        };
+      }
     case RESET_STATE:
       return {
         ...initialState
@@ -110,7 +125,7 @@ export const getAllGroup = (username, chatPort) => ({
       userId: username
     })
     .then(function(response) {
-      console.log("resetState : " + response.data);
+      //console.log("resetState : " + response.data);
       return response.data;
     })
 });
@@ -124,7 +139,7 @@ export const onUpdate = (username, allgroup, rowselect, chatPort) => ({
       index: rowselect
     })
     .then(function(response) {
-      console.log("onUpdate : " + response.data);
+      //console.log("onUpdate : " + response.data);
       return response.data;
     })
 });
@@ -145,7 +160,7 @@ export const getUserGroup = (username, chatPort) => ({
       username: username
     })
     .then(function(response) {
-      console.log("getUserGroup : " + response.data);
+      //console.log("getUserGroup : " + response.data);
       return response.data;
     })
 });
@@ -158,7 +173,7 @@ export const createGroup = (username, group, chatPort) => ({
       userId: username
     })
     .then(function(response) {
-      console.log("createGroup : " + response.data);
+      //console.log("createGroup : " + response.data);
       return response.data;
     })
 });
@@ -170,7 +185,7 @@ export const getGroupMember = (groupName, chatPort) => ({
       groupName: groupName
     })
     .then(function(response) {
-      console.log("getGroupMember : " + response.data);
+      //console.log("getGroupMember : " + response.data);
       return response.data;
     })
 });
@@ -183,12 +198,12 @@ export const getUnread = (user, group, chatPort) => ({
       groupName: group
     })
     .then(function(response) {
-      console.log("getUnread : " + response.data);
+      //console.log("getUnread : " + response.data);
       return response.data;
     })
     .then(function(response) {
-      console.log("getUnread2 : " + response);
-      console.log(response);
+      //console.log("getUnread2 : " + response);
+      //console.log(response);
       if (response.result == "success") {
         const a = response.unreadmsg.map(e => {
           let b = {
@@ -220,4 +235,8 @@ export const setField = (key, value) => ({
   type: SET_FIELD,
   key: key,
   value: value
+});
+
+export const swap = () => ({
+  type: SWAP
 });

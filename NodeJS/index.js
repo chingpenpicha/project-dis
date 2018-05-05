@@ -42,7 +42,7 @@ app.post('/regist', (req,res) => {
 
 app.post('/getUserGroup' , (req,res) => {
     let username = req.body.username;
-    console.log(username);
+    //console.log(username);
     getUserGroup(username).then(results => {res.send(results)})
 })
 
@@ -91,32 +91,33 @@ app.post('/update',(req,res)=>{
 
 async function getUnRead(user, group){
     try {
-        console.log(user)
-        console.log(group)
+        //console.log(user)
+        //console.log(group)
         const gid = await findGroupId(group)
         const lastmsg = await db.query('select gm.messageId from groupmember gm where groupId = '+gid+' and userId = "'+user+'";')
-        console.log(lastmsg);
+        //console.log(lastmsg);
         const unreadmsg = await db.query('SELECT u.userId, u.color, m.text, m.timestamp from message m natural join user u\
                                     where groupId = '+gid+' and messageId > ' +lastmsg[0].messageId+'')
+
         console.log(unreadmsg);
 
         return {'result' : 'success', unreadmsg}
     }catch(e){
-        console.log("getUnRead : " + e);
+        //console.log("getUnRead : " + e);
         return {'result' : 'no unread message'}
     }  
 }
 /*
 async function update(userId,allgroup,index){
-     console.log("Update : userId "+ userId )
-     console.log(index+"    ")
+     //console.log("Update : userId "+ userId )
+     //console.log(index+"    ")
      var newarr = []
      for(let i =0;i<allgroup.length;i++){
        newarr.push(allgroup[i].name)  
      }
-     console.log(newarr.length)
+     //console.log(newarr.length)
     for(let i =0;i<newarr.length;i++){
-         console.log("i"+ i)
+         //console.log("i"+ i)
         let x = await db.query("select gm.userId from groupmember gm \
         left join chat_data.group g on gm.groupId=g.groupId \
         left join user u on u.userId=gm.userId \
@@ -144,62 +145,62 @@ async function update(userId,allgroup,index){
 }*/
 
 async function update(userId, allgroup, index) {
-     /*console.log(userId)
-     console.log(allgroup)
-     console.log(index)*/
+     /*//console.log(userId)
+     //console.log(allgroup)
+     //console.log(index)*/
     try{
     for (let i = 0, k = 0; i < allgroup.length; i++) {
         let gid = await findGroupId(allgroup[i].name)
         const x = await db.query("select gm.userId from groupmember gm \
         where gm.groupId ='"+ gid + "' and userId = '" + userId + "';");
-        console.log('i = '+i+' k = '+k+' next in group '+index[k])
+        //console.log('i = '+i+' k = '+k+' next in group '+index[k])
         if (x.length === 0 && index[k] === i) { //not currently in group -> addtogroup
-            console.log('add user '+userId+' to group '+allgroup[i].name)
+            //console.log('add user '+userId+' to group '+allgroup[i].name)
             await addmember(allgroup[i].name, userId)
             k++;
         }
         else if (x.length !== 0 && index[k] === i){ //already in and wanna in
-            console.log('user '+userId+' already in group '+allgroup[i].name)
+            //console.log('user '+userId+' already in group '+allgroup[i].name)
             k++;
         }else if(x.length !== 0 && index[k] !== i){
-            console.log('delete user '+userId+' to group '+allgroup[i].name)
+            //console.log('delete user '+userId+' to group '+allgroup[i].name)
             await deleteUser(allgroup[i].name, userId)
         }
     }
     return { result: 'success' }
     }
     catch(e){
-        console.log("update : " + e);
-        console.log(e);
+        //console.log("update : " + e);
+        //console.log(e);
     }
 }
 
 async function deleteUser(groupName,userId){
     try{
-        console.log("delete "+userId + " from :"+groupName)
+        //console.log("delete "+userId + " from :"+groupName)
         let gd = await db.query("select groupId from chat_data.group where groupName='"+groupName+"';")
-        console.log(gd)
+        //console.log(gd)
         if(gd.length!=0)
             await db.query("delete from groupmember where groupId="+gd[0].groupId+" and userId='"+userId+"';")
         return{valid : true}
     }catch(e){
-        console.log('fail delete user' + e)
+        //console.log('fail delete user' + e)
         return{valid : false}
     }
 }
 
 
 async function addmember(groupName,userId){
-    console.log("Add "+userId + " into :"+groupName)
+    //console.log("Add "+userId + " into :"+groupName)
     try{
-        console.log(groupName);
+        //console.log(groupName);
         let gd = await db.query("select groupId from chat_data.group where groupName='"+groupName+"';")
-        console.log(gd);
+        //console.log(gd);
         let mess = await db.query("select max(messageId) as a from message where groupId = "+gd[0].groupId+";");
         await db.query("insert into groupmember values ("+gd[0].groupId+",'"+userId+"',"+mess[0].a+");")
         return{valid : true}
     }catch(e){
-        console.log('fail add user'+e)
+        //console.log('fail add user'+e)
         return{valid : false}
     }
 }
@@ -216,7 +217,7 @@ async function getGroupMember(groupName){
             groupMember
         })
     }catch(e){
-        console.log("getGroupMember : " + e);
+        //console.log("getGroupMember : " + e);
         return({valid : false})
     }
 }
@@ -234,7 +235,7 @@ async function deleteGroup(groupId){
             return{result : false}
         }
     }catch(e){
-        console.log("deleteGroup : " + e);
+        //console.log("deleteGroup : " + e);
         return{result : false}
     }
 }
@@ -278,26 +279,26 @@ async function getUserMember(name){
     }
     }
     
-    //console.log(group)
+    ////console.log(group)
     return {groupna,groupin}}
     catch(e){
-        console.log("getUserMember : " + e);
+        //console.log("getUserMember : " + e);
         return {valid : false};
     }
 }
 
 async function getUserGroup(username){
     try{
-        console.log(username)
+        //console.log(username)
         const results = await db.query('SELECT g.groupName\
                         FROM chat_data.`group` g, groupmember gm  where g.groupId = gm.groupId and userId = ?', username)
-        console.log('here')
+        //console.log('here')
         return {
             valid : true,
             groupList : results
         }
     }catch(e){
-        console.log("from getUserGroup " + e);
+        //console.log("from getUserGroup " + e);
         return {valid : false}
     }
 }
@@ -310,7 +311,7 @@ async function regist(username,pw){
                 valid: '1',
             })
     } catch (e) {
-        console.log("from regist: " + e)
+        //console.log("from regist: " + e)
         return ({ valid: '-1' })
     }
 }
@@ -320,7 +321,7 @@ async function login(username, pw) {
         const results = await db.query('SELECT U.password, U.userId, U.color\
                                     FROM user U\
                                     where userId= ?', username)
-        console.log(results[0].password);
+        //console.log(results[0].password);
         if (results.length === 1 && results[0].password === pw) {
             return ({
                 valid: true,
@@ -330,25 +331,25 @@ async function login(username, pw) {
             })
         } else throw new Error('invalid')
     } catch (e) {
-        console.log("from login: " + e)
+        //console.log("from login: " + e)
         return ({ valid: false })
     }
 }
 
 async function createGroup(groupName,userId){
-    console.log("create "+groupName + " " +userId)
+    //console.log("create "+groupName + " " +userId)
     try{
         await db.query("insert into chat_data.group (groupName) values ('"+groupName+"');").then((result)=>{addmember(groupName,userId)})
         return{valid : true}
     }catch(e){
-        console.log("createGroup : " + e);
+        //console.log("createGroup : " + e);
         return{valid : false}
     }
     
 }
 
 async function findGroupId(groupname){
-    console.log(groupname);
+    //console.log(groupname);
     return await db.query('select groupId from chat_data.group where `groupName` ="'+groupname+'";').then(res => res[0].groupId)
 }
 
@@ -356,14 +357,14 @@ async function saveMessage(user, gn, message, time) {
     try {
         const res = await db.query('CALL saveMessage \
         ("'+ message + '","' + time + '","' + user + '","' + gn + '");')
-        console.log("---------")
-        console.log(res[0])
-        console.log("---------")
+        //console.log("---------")
+        //console.log(res[0])
+        //console.log("---------")
         let tmp = res[0];
 
         return tmp[0].messageId;
     } catch (e) {
-        console.log(e)
+        //console.log(e)
         return ({ 'result': 'false' });
     }
 }
@@ -374,7 +375,7 @@ async function updateLastMsg(group, user, messageId) {
         await db.query('update groupmember gm set gm.messageId = ' + messageId + ' where groupId = "' + gid + '" and userId = "' + user+'"')
         return ({ 'results': 'true' })
     } catch (e) {
-        console.log('from updateLast ' + e)
+        //console.log('from updateLast ' + e)
         return ({ 'results': 'false' })
     }
 }
@@ -384,12 +385,12 @@ async function updateLeft(group, user) {
         const gid = await findGroupId(group)
           console.log("Update : "+ gid)
         let mess = await db.query("select max(messageId) as a from message where groupId = "+gid+";");
-        console.log('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
-        console.log(mess)
+        //console.log('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
+        //console.log(mess)
         await db.query('update groupmember gm set gm.messageId = ' + mess[0].a + ' where groupId = "' + gid + '" and userId = "' + user+'"')
         return ({ 'results': 'true' })
     } catch (e) {
-        console.log('from updateLast ' + e)
+        //console.log('from updateLast ' + e)
         return ({ 'results': 'false' })
     }
 }
@@ -397,18 +398,20 @@ async function updateLeft(group, user) {
 //======================end function==============================
 
 io.on('connection', function (socket) {
+
     console.log('in socket io > '+ socket.conn.remoteAddress + ' port : ' + process.argv[2])
+
     // once a client has connected, we expect to get a ping from them saying what room they want to join
     socket.on('joinroom', (data) => {
-        console.log('Join' + data.groupName)
+        //console.log('Join' + data.groupName)
         socket.join(data.groupName);
     });
 
     socket.on('SEND_MESSAGE', (data) => {
-        console.log('io : Send_mesage ', data)
+        //console.log('io : Send_mesage ', data)
         let timestamp = moment(new Date()).format("ddd, D/M/YYYY, HH:mm:ss")
         let result = saveMessage(data.author, data.groupName, data.message, timestamp)
-        .then(res => {console.log(res);
+        .then(res => {//console.log(res);
             io.to(data.groupName).emit('RECEIVE_MESSAGE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp, 'messageId' : res, 'groupName' : data.groupName })}
     )
         //repServerSocket.broadcast.emit('UP_SERVE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp, 'messageId' : res})
@@ -420,14 +423,14 @@ io.on('connection', function (socket) {
     })
 
     socket.on('leftgroup', (data) => {
-        console.log("ASPODJPOSJDOSNDOINSODOSANDOISNADONSOI")
+        //console.log("ASPODJPOSJDOSNDOINSODOSANDOISNADONSOI")
         updateLeft(data.groupName, data.me)
         socket.leave(data.groupName);
     })
 
     socket.on('sun', (data)=>{
-        console.log("Response : ")
-        console.log(data)
+        //console.log("Response : ")
+        //console.log(data)
         updateLastMsg(data.groupName, data.me, data.messageId)
     })
 
@@ -435,17 +438,17 @@ io.on('connection', function (socket) {
 /*
 
 io.on('connection', function(socket) {
-     console.log('in socket io')
+     //console.log('in socket io')
     // once a client has connected, we expect to get a ping from them saying what room they want to join
    socket.on('joinroom', (data)=> {
-        console.log('Join'+ data.groupName)
+        //console.log('Join'+ data.groupName)
         socket.join(data.groupName);
     });
 
     socket.on('SEND_MESSAGE', (data)=>{
-        console.log('io : Send_mesage ', data)
+        //console.log('io : Send_mesage ', data)
         let timestamp = moment(new Date()).format("ddd, D/M/YYYY HH:mm:ss")
-        let res = saveMessage(data.author, data.groupName, data.message, timestamp).then(res=> console.log("add to db : "+ res))
+        let res = saveMessage(data.author, data.groupName, data.message, timestamp).then(res=> //console.log("add to db : "+ res))
         io.to(data.groupName).emit('RECEIVE_MESSAGE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp} )
         //repServerSocket.broadcast.emit('UP_SERVE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp})
 
@@ -457,10 +460,10 @@ io.on('connection', function(socket) {
 
 });
 */
-/*const repServerSocket = require('socket.io-client')('http://localhost:'+replicate)
-repServerSocket.on('connect', ()=>{
-    console.log('connect to replicated port '+replicate)
-})*/
+// /*const repServerSocket = require('socket.io-client')('http://localhost:'+replicate)
+// repServerSocket.on('connect', ()=>{
+//     //console.log('connect to replicated port '+replicate)
+// })*/
 http.listen(process.argv[2], () => console.log('Server is running on port '+process.argv[2]+'!'))
 
 

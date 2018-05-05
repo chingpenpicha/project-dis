@@ -25,7 +25,7 @@ const initialState = {
 };
 
 export default (state = initialState, action) => {
-  console.log(action);
+  //console.log(action);
   switch (action.type) {
     case CLEAR_FIELD:
       return {

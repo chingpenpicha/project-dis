@@ -61,6 +61,11 @@ class ChatPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+
+    this.props.socket.on("connect_error", function(err) {
+      props.disconnect();
+      props.swap();
+    });
   }
   componentDidMount() {
     this.props.onConnectionChat();
@@ -70,8 +75,9 @@ class ChatPage extends React.Component {
     visible: false,
     selectedRows: this.props.rowSelected
   };
+
   onSelectChange = selectedRows => {
-    console.log("selectedRowKeys changed: ", selectedRows);
+    //console.log("selectedRowKeys changed: ", selectedRows);
     this.setState({ selectedRows });
     this.props.setField("rowSelected", selectedRows);
   };

@@ -39,6 +39,13 @@ class LoginPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+
+    this.props.socket.on("connect_error", function(err) {
+      props.socket.disconnect();
+      props.swap();
+    });
+
+    this.props.socket.on("disconnect", () => {});
   }
 
   componentDidMount() {
