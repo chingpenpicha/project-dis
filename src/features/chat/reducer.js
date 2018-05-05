@@ -1,4 +1,6 @@
 import axios from "axios";
+import React from "react";
+import { Avatar } from "antd";
 
 const GET_USER_GROUP = "GET_USER_GROUP";
 const GET_USER_GROUP_FULFILLED = "GET_USER_GROUP_FULFILLED";
@@ -20,6 +22,7 @@ const GET_UNREAD = "GET_UNREAD";
 const GET_UNREAD_FULFILLED = "GET_UNREAD_FULFILLED";
 
 const initialState = {
+  menuChange: false,
   userGroup: [{ groupName: "" }],
   queryGroup: true,
   allGroup: [],
@@ -64,7 +67,7 @@ export default (state = initialState, action) => {
       if (action.payload.result == "success")
         return {
           ...state,
-          unreadMsg: action.payload.unreadmsg
+          unreadMsg: action.payload
         };
       else {
         return {
@@ -166,6 +169,32 @@ export const getUnread = (user, group) => ({
     .then(function(response) {
       console.log(response.data);
       return response.data;
+    })
+    .then(function(response) {
+      if (response.result == "success") {
+        const a = response.unreadmsg.map(e => {
+          let b = {
+            title: e.author,
+            avatar: (
+              <Avatar
+                style={{
+                  backgroundColor: e.color,
+                  verticalAlign: "middle"
+                }}
+                size="large"
+              >
+                {e.author.substring(0, 1)}
+              </Avatar>
+            ),
+            description: e.time,
+            content: e.message
+          };
+          return b;
+        });
+        return a;
+      } else {
+        return [];
+      }
     })
 });
 

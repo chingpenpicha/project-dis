@@ -28,7 +28,8 @@ const mapStateToProps = state => {
     rowSelected: state.chat.rowSelected,
     allGroup: state.chat.allGroup,
     currentGroup: state.chat.currentGroup,
-    newGroupName: state.chat.newGroupName
+    newGroupName: state.chat.newGroupName,
+    menuChange: state.chat.menuChange
   };
 };
 
@@ -65,6 +66,7 @@ class ChatPage extends React.Component {
   onSelectChange = selectedRows => {
     console.log("selectedRowKeys changed: ", selectedRows);
     this.setState({ selectedRows });
+    this.props.setField("rowSelected", selectedRows);
   };
 
   handleCurrentGroup = visible => {
@@ -205,7 +207,7 @@ class ChatPage extends React.Component {
                           this.props.onUpdate(
                             this.props.userInformation.username,
                             this.props.allGroup,
-                            this.props.selectedRows
+                            this.state.selectedRows
                           )
                         }
                       >
@@ -249,6 +251,7 @@ class ChatPage extends React.Component {
                   this.props.userInformation.username,
                   e.key
                 );
+                this.props.setField("menuChange", true);
               }}
             >
               {this.props.userGroup.map(e => (

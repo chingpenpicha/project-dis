@@ -1,6 +1,6 @@
 import React from "react";
 import io from "socket.io-client";
-import { getUserGroup, resetState } from "./reducer";
+import { getUserGroup, resetState, setField } from "./reducer";
 import { connect } from "react-redux";
 import { Layout, Menu, Icon, Input, Button, List, Avatar } from "antd";
 const { Content, Sider } = Layout;
@@ -14,24 +14,25 @@ const mapStateToProps = state => {
     rowSelected: state.chat.rowSelected,
     memberInGroup: state.chat.memberInGroup,
     currentGroup: state.chat.currentGroup,
-    unreadMsg: state.chat.unreadMsg
+    unreadMsg: state.chat.unreadMsg,
+    menuChange: state.chat.menuChange
   };
 };
 
-const mapDispatchToProps = { getUserGroup, resetState };
+const mapDispatchToProps = { getUserGroup, resetState, setField };
 
 class EachChat extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      message: "",
-      listData: []
+      message: ""
     };
 
     this.socket = io("localhost:8000");
 
     this.socket.on("RECEIVE_MESSAGE", function(data) {
+      console.log("receive msg jaa");
       addMessage(data);
     });
 
@@ -56,8 +57,8 @@ class EachChat extends React.Component {
         content: res.message
       });
 
-      this.setState({ listData: [...this.state.listData, ...a] });
-      console.log(this.state.messages);
+      this.props.setField("unreadMsg", [...this.props.unreadMsg, ...a]);
+      console.log(this.props.unreadMsg);
     };
 
     this.sendMessage = ev => {
@@ -71,40 +72,15 @@ class EachChat extends React.Component {
       this.setState({ message: "" });
     };
   }
-  componentDidMount() {
-    this.socket.emit("joinroom", {
-      groupName: this.props.currentGroup
-    });
 
-    const unreadMsgj = this.props.unreadMsg;
-    const a = [];
-    for (let i = 0; i < unreadMsgj.length; i++) {
-      a.push({
-        title: unreadMsgj[i].userId,
-        avatar: (
-          <Avatar
-            style={{
-              backgroundColor: unreadMsgj[i].color,
-              verticalAlign: "middle"
-            }}
-            size="large"
-          >
-            {unreadMsgj[i].userId.substring(0, 1)}
-          </Avatar>
-        ),
-        description: unreadMsgj[i].timeStamp,
-        content: unreadMsgj[i].text
-      });
-    }
-
-    this.setState({ listData: [...this.state.listData, ...a] });
-  }
-
-  componentWillUnmount() {
-    this.setState({ listData: [] });
-  }
   render() {
     const props = this.props;
+    if (props.menuChange) {
+      this.socket.emit("joinroom", {
+        groupName: props.currentGroup
+      });
+      this.props.setField("menuChange", false);
+    }
     return (
       <div>
         <div
@@ -148,7 +124,7 @@ class EachChat extends React.Component {
                   width: "85%"
                 }}
                 itemLayout="horizontal"
-                dataSource={this.state.listData}
+                dataSource={this.props.unreadMsg}
                 renderItem={item => (
                   <List.Item key={item.title}>
                     <List.Item.Meta

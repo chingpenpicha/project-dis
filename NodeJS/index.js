@@ -102,44 +102,57 @@ async function getUnRead(user, group){
 
 async function update(userId,allgroup,index){
      console.log("Update : userId "+ userId )
+     console.log(index+"    ")
      var newarr = []
      for(let i =0;i<allgroup.length;i++){
        newarr.push(allgroup[i].name)  
      }
-
+     console.log(newarr.length)
     for(let i =0;i<newarr.length;i++){
-        const x = await db.query("select gm.userId from groupmember gm \
+         console.log("i"+ i)
+        let x = await db.query("select gm.userId from groupmember gm \
         left join chat_data.group g on gm.groupId=g.groupId \
         left join user u on u.userId=gm.userId \
         where g.groupName ='"+newarr[i]+"';");
-
+      
         for(let j=0;j<x.length;j++){
-            if(x[j].userId==userId && index.indexOf(i)==-1){
+            var check = -1;
+            for(let k = 0;k<index.length;k++){
+                if(index[k]==i){
+                    check=k
+                }
+            }
+            if(x[j].userId==userId && check==-1){
                await deleteUser(newarr[i],userId)
             }
         }
-        if(index.indexOf(i)!=-1){
+            if(check!=-1){
             await addmember(newarr[i],userId)
+            
         }
+    
         
     }
     return{ result: 'success' }
 }
 async function deleteUser(groupName,userId){
     try{
+        console.log("delete "+userId + " from :"+groupName)
         let gd = await db.query("select groupId from chat_data.group where groupName='"+groupName+"';")
-        await db.query("delete from groupmember where groupId="+gd[0].groupId+" and userId='"+userId+"';")
+        console.log(gd)
+        if(gd.length!=0)
+            await db.query("delete from groupmember where groupId="+gd[0].groupId+" and userId='"+userId+"';")
         return{valid : true}
     }catch(e){
-        console.log('fail delete user')
+        console.log('fail delete user' + e)
         return{valid : false}
     }
 }
 
 
 async function addmember(groupName,userId){
+    console.log("Add "+userId + " into :"+groupName)
     try{
-        console.log('===========')
         let gd = await db.query("select groupId from chat_data.group where groupName='"+groupName+"';")
         let mess = await db.query("select max(messageId) as a from message where groupId = "+gd[0].groupId+";");
         await db.query("insert into groupmember values ("+gd[0].groupId+",'"+userId+"',"+mess[0].a+");")
@@ -286,17 +299,19 @@ async function createGroup(groupName,userId){
 }
 
 async function findGroupId(groupname){
-    return await db.query('select groupId from group where groupname = ?', groupname).then(res => res[0])
+    return await db.query('select groupId from chat_data.group where groupname = ?', groupname).then(res => res[0])
 }
 
 async function saveMessage(user, gn, message, time){
     try {
-        const gid = await findGroupId(gn)
+        
+        const gid = await findGroupId(gn).then(res=>res.groupId)
         const res = await db.query('INSERT INTO `chat_data`.`message`\
         (`text`,`timeStamp`,`userId`,`groupId`) VALUES \
-        ('+message+','+time+','+user,gid+');')
+        ("'+message+'","'+time+'","'+user+'","'+gid+'");')
         return 'true';
     }catch(e){
+        console.log(e)
         return 'false';
     }
 }
@@ -315,8 +330,8 @@ io.on('connection', function(socket) {
 
     socket.on('SEND_MESSAGE', (data)=>{
         console.log('io : Send_mesage ', data)
-        let timestamp = moment(new Date()).format("ddd, D/M/YYYY, HH:mm:ss")
-        let res = saveMessage(data.author, data.groupName, data.message, timestamp)
+        let timestamp = moment(new Date()).format("ddd, D/M/YYYY HH:mm:ss")
+        let res = saveMessage(data.author, data.groupName, data.message, timestamp).then(res=> console.log("add to db : "+ res))
         io.to(data.groupName).emit('RECEIVE_MESSAGE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp} )
         //repServerSocket.broadcast.emit('UP_SERVE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp})
 

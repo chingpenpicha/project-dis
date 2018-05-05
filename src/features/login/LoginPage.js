@@ -95,7 +95,9 @@ class LoginPage extends React.Component {
             backgroundImage: `url(${Background})`,
             backgroundSize: "cover",
             overflow: "hidden",
-            textAlign: "center"
+            textAlign: "center",
+            minWidth: "100%",
+            minHeight: "100%"
           }}
         >
           <img
@@ -126,6 +128,12 @@ class LoginPage extends React.Component {
               clearField={() => this.props.clearField()}
             />
           </div>
+          <div
+            style={{
+              height: 260,
+              bottom: 0
+            }}
+          />
         </div>
       );
     }
