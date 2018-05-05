@@ -34,6 +34,7 @@ const initialState = {
 };
 
 export default (state = initialState, action) => {
+  console.log(action)
   switch (action.type) {
     case RESET_STATE:
       return {
@@ -64,17 +65,10 @@ export default (state = initialState, action) => {
       };
 
     case GET_UNREAD_FULFILLED:
-      if (action.payload.result == "success")
         return {
           ...state,
           unreadMsg: action.payload
         };
-      else {
-        return {
-          ...state,
-          unreadMsg: []
-        };
-      }
     case GET_USER_GROUP_FULFILLED:
       if (action.payload.valid)
         return {
@@ -99,11 +93,11 @@ export const resetState = () => ({
 export const getAllGroup = username => ({
   type: GET_ALL_GROUP,
   payload: axios
-    .post("http://localhost:8000/getUserMember", {
+    .post("http://10.207.179.194:8000/getUserMember", {
       userId: username
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("resetState : " + response.data);
       return response.data;
     })
 });
@@ -111,13 +105,13 @@ export const getAllGroup = username => ({
 export const onUpdate = (username, allgroup, rowselect) => ({
   type: ON_UPDATE,
   payload: axios
-    .post("http://localhost:8000/update", {
+    .post("http://10.207.179.194:8000/update", {
       userId: username,
       allgroup: allgroup,
       index: rowselect
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("onUpdate : " + response.data);
       return response.data;
     })
 });
@@ -125,11 +119,11 @@ export const onUpdate = (username, allgroup, rowselect) => ({
 export const getUserGroup = username => ({
   type: GET_USER_GROUP,
   payload: axios
-    .post("http://localhost:8000/getUserGroup", {
+    .post("http://10.207.179.194:8000/getUserGroup", {
       username: username
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("getUserGroup : " + response.data);
       return response.data;
     })
 });
@@ -137,12 +131,12 @@ export const getUserGroup = username => ({
 export const createGroup = (username, group) => ({
   type: CREATE_GROUP,
   payload: axios
-    .post("http://localhost:8000/createGroup", {
+    .post("http://10.207.179.194:8000/createGroup", {
       groupName: group,
       userId: username
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("createGroup : " + response.data);
       return response.data;
     })
 });
@@ -150,11 +144,11 @@ export const createGroup = (username, group) => ({
 export const getGroupMember = groupName => ({
   type: GET_GROUP_MEMBER,
   payload: axios
-    .post("http://localhost:8000/getGroupMember", {
+    .post("http://10.207.179.194:8000/getGroupMember", {
       groupName: groupName
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("getGroupMember : " + response.data);
       return response.data;
     })
 });
@@ -162,19 +156,21 @@ export const getGroupMember = groupName => ({
 export const getUnread = (user, group) => ({
   type: GET_UNREAD,
   payload: axios
-    .post("http://localhost:8000/getUnRead", {
+    .post("http://10.207.179.194:8000/getUnRead", {
       userId: user,
       groupName: group
     })
     .then(function(response) {
-      console.log(response.data);
+      console.log("getUnread : " + response.data);
       return response.data;
     })
     .then(function(response) {
+      console.log("getUnread2 : " + response);
+      console.log(response);
       if (response.result == "success") {
         const a = response.unreadmsg.map(e => {
           let b = {
-            title: e.author,
+            title: e.userId,
             avatar: (
               <Avatar
                 style={{
@@ -183,11 +179,11 @@ export const getUnread = (user, group) => ({
                 }}
                 size="large"
               >
-                {e.author.substring(0, 1)}
+                {e.userId.substring(0, 1)}
               </Avatar>
             ),
-            description: e.time,
-            content: e.message
+            description: e.timestamp,
+            content: e.text
           };
           return b;
         });

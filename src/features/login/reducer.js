@@ -69,7 +69,7 @@ export const setField = (key, value) => ({
 export const regist = (username, password) => ({
   type: REGIST,
   payload: axios
-    .post("http://localhost:8000/regist", {
+    .post("http://10.207.179.194:8000/regist", {
       username: username,
       password: password
     })
@@ -81,7 +81,7 @@ export const regist = (username, password) => ({
 export const login = (username, password) => ({
   type: LOGIN,
   payload: axios
-    .post("http://localhost:8000/login", {
+    .post("http://10.207.179.194:8000/login", {
       username: username,
       password: password
     })

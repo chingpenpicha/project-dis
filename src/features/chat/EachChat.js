@@ -29,7 +29,7 @@ class EachChat extends React.Component {
       message: ""
     };
 
-    this.socket = io("localhost:8000");
+    this.socket = io("10.207.179.194:8000");
 
     this.socket.on("RECEIVE_MESSAGE", function(data) {
       console.log("receive msg jaa");

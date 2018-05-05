@@ -69,10 +69,6 @@ class ChatPage extends React.Component {
     this.props.setField("rowSelected", selectedRows);
   };
 
-  handleCurrentGroup = visible => {
-    //Do something else
-    this.setState({ visible });
-  };
   handleVisibleChange = visible => {
     this.setState({ visible });
   };
@@ -203,13 +199,14 @@ class ChatPage extends React.Component {
                       <Button
                         type="primary"
                         style={{ width: "100%" }}
-                        onClick={() =>
+                        onClick={() => {
                           this.props.onUpdate(
                             this.props.userInformation.username,
                             this.props.allGroup,
                             this.state.selectedRows
-                          )
-                        }
+                          );
+                          this.setState({ visible: false });
+                        }}
                       >
                         Save
                       </Button>
@@ -231,7 +228,7 @@ class ChatPage extends React.Component {
                       this.props.getAllGroup(
                         this.props.userInformation.username
                       );
-                      this.onSelectChange(this.props.rowSelected);
+                      this.props.setField("rowSelected", []);
                     }}
                   />
                 </Popover>
