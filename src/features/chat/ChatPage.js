@@ -9,7 +9,8 @@ import {
   setField,
   createGroup,
   getUnread,
-  onUpdate
+  onUpdate,
+  onConnectionChat
 } from "./reducer";
 import { Layout, Menu, Icon, Button, Popover, Table, Input } from "antd";
 import { bindActionCreators } from "redux";
@@ -30,7 +31,8 @@ const mapStateToProps = state => {
     currentGroup: state.chat.currentGroup,
     newGroupName: state.chat.newGroupName,
     menuChange: state.chat.menuChange,
-    socket : state.chat.socket
+    socket: state.chat.socket,
+    chatPort: state.chat.chatPort
   };
 };
 
@@ -43,7 +45,8 @@ const mapDispatchToProps = (dispatch, props) => {
     setField: bindActionCreators(setField, dispatch),
     createGroup: bindActionCreators(createGroup, dispatch),
     getUnread: bindActionCreators(getUnread, dispatch),
-    onUpdate: bindActionCreators(onUpdate, dispatch)
+    onUpdate: bindActionCreators(onUpdate, dispatch),
+    onConnectionChat: bindActionCreators(onConnectionChat, dispatch)
   };
 };
 
@@ -58,6 +61,9 @@ class ChatPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+  }
+  componentDidMount() {
+    this.props.onConnectionChat();
   }
 
   state = {
@@ -75,7 +81,10 @@ class ChatPage extends React.Component {
   };
   render() {
     if (this.props.queryGroup) {
-      this.props.getUserGroup(this.props.userInformation.username);
+      this.props.getUserGroup(
+        this.props.userInformation.username,
+        this.props.chatPort
+      );
     }
     const { selectedRows } = this.state;
 
@@ -182,10 +191,12 @@ class ChatPage extends React.Component {
                             onClick={() => {
                               this.props.createGroup(
                                 this.props.userInformation.username,
-                                this.props.newGroupName
+                                this.props.newGroupName,
+                                this.props.chatPort
                               );
                               this.props.getAllGroup(
-                                this.props.userInformation.username
+                                this.props.userInformation.username,
+                                this.props.chatPort
                               );
                             }}
                           />
@@ -204,7 +215,8 @@ class ChatPage extends React.Component {
                           this.props.onUpdate(
                             this.props.userInformation.username,
                             this.props.allGroup,
-                            this.state.selectedRows
+                            this.state.selectedRows,
+                            this.props.chatPort
                           );
                           this.setState({ visible: false });
                         }}
@@ -227,7 +239,8 @@ class ChatPage extends React.Component {
                     style={{ marginLeft: 60 }}
                     onClick={() => {
                       this.props.getAllGroup(
-                        this.props.userInformation.username
+                        this.props.userInformation.username,
+                        this.props.chatPort
                       );
                       this.props.setField("rowSelected", []);
                     }}
@@ -243,15 +256,16 @@ class ChatPage extends React.Component {
                 height: "100%"
               }}
               onSelect={e => {
-                this.props.getGroupMember(e.key);
+                this.props.getGroupMember(e.key, this.props.chatPort);
                 this.props.socket.emit("leftgroup", {
-                  groupName:this.props.currentGroup,
-                  me : this.props.userInformation.username
+                  groupName: this.props.currentGroup,
+                  me: this.props.userInformation.username
                 });
                 this.props.setField("currentGroup", e.key);
                 this.props.getUnread(
                   this.props.userInformation.username,
-                  e.key
+                  e.key,
+                  this.props.chatPort
                 );
                 this.props.setField("menuChange", true);
               }}
