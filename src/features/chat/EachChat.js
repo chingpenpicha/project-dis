@@ -34,6 +34,7 @@ class EachChat extends React.Component {
     this.socket.on("RECEIVE_MESSAGE", function(data) {
       console.log("receive msg jaa");
       addMessage(data);
+ 
     });
 
     const addMessage = res => {
@@ -59,7 +60,14 @@ class EachChat extends React.Component {
 
       this.props.setField("unreadMsg", [...this.props.unreadMsg, ...a]);
       console.log(this.props.unreadMsg);
+      console.log("------------")
+      console.log(res);
+      console.log("------------")
+      console.log(this.socket.emit("sun", res))
+
     };
+
+
 
     this.sendMessage = ev => {
       ev.preventDefault();
@@ -121,6 +129,7 @@ class EachChat extends React.Component {
                 style={{
                   marginLeft: 50,
                   marginRight: 50,
+                  marginBottom: 30,
                   width: "85%"
                 }}
                 itemLayout="horizontal"
@@ -147,6 +156,7 @@ class EachChat extends React.Component {
                 bottom: 0,
                 right: 200
               }}
+              onPressEnter={e => this.sendMessage(e)}
               addonAfter={
                 <Button
                   type="primary"

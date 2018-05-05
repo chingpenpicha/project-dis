@@ -351,22 +351,70 @@ async function findGroupId(groupname){
     return await db.query('select groupId from chat_data.group where `groupName` ="'+groupname+'";').then(res => res[0].groupId)
 }
 
-async function saveMessage(user, gn, message, time){
+async function saveMessage(user, gn, message, time) {
     try {
-        const gid = await findGroupId(gn)
-        const res = await db.query('INSERT INTO `chat_data`.`message`\
-        (`text`,`timeStamp`,`userId`,`groupId`) VALUES \
-        ("'+message+'","'+time+'","'+user+'","'+gid+'");')
-        return 'true';
-    }catch(e){
-        console.log("saveMessage : " +e)
-        return 'false';
+        const res = await db.query('CALL saveMessage \
+        ("'+ message + '","' + time + '","' + user + '","' + gn + '");')
+        console.log("---------")
+        console.log(res[0])
+        console.log("---------")
+        let tmp = res[0];
+
+        return tmp[0].messageId;
+    } catch (e) {
+        console.log(e)
+        return ({ 'result': 'false' });
+    }
+}
+
+async function updateLastMsg(group, user, messageId) {
+    try {
+        const gid = await findGroupId(group)
+        await db.query('update groupmember gm set gm.messageId = ' + messageId + ' where groupId = "' + gid + '" and userId = "' + user+'"')
+        return ({ 'results': 'true' })
+    } catch (e) {
+        console.log('from updateLast ' + e)
+        return ({ 'results': 'false' })
     }
 }
 
 //======================end function==============================
 
+io.on('connection', function (socket) {
+    console.log('in socket io')
+    // once a client has connected, we expect to get a ping from them saying what room they want to join
+    socket.on('joinroom', (data) => {
+        console.log('Join' + data.groupName)
+        socket.join(data.groupName);
+    });
 
+    socket.on('SEND_MESSAGE', (data) => {
+        console.log('io : Send_mesage ', data)
+        let timestamp = moment(new Date()).format("ddd, D/M/YYYY, HH:mm:ss")
+        let result = saveMessage(data.author, data.groupName, data.message, timestamp)
+        .then(res => {console.log(res);
+            io.to(data.groupName).emit('RECEIVE_MESSAGE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp, 'messageId' : res, 'groupName' : data.groupName })}
+    )
+        //repServerSocket.broadcast.emit('UP_SERVE', { 'author': data.author, 'color': data.color, 'message': data.message, 'time': timestamp, 'messageId' : res})
+
+    })
+
+    socket.on('UP_SERVE', (data) => {
+        io.to(data.groupName).emit('RECEIVE_MESSAGE', data);
+    })
+
+    socket.on('leftgroup', (data) => {
+        socket.leave(data.groupName);
+    })
+
+    socket.on('sun', (data)=>{
+        console.log("Response : ")
+        console.log(data)
+        updateLastMsg(data.groupName, data.author, data.messageId)
+    })
+
+});
+/*
 
 io.on('connection', function(socket) {
      console.log('in socket io')
@@ -390,7 +438,7 @@ io.on('connection', function(socket) {
     })
 
 });
-
+*/
 /*const repServerSocket = require('socket.io-client')('http://localhost:'+replicate)
 repServerSocket.on('connect', ()=>{
     console.log('connect to replicated port '+replicate)
