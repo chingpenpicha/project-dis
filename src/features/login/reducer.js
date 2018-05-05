@@ -9,15 +9,15 @@ const CLEAR_FIELD = "CLEAR_FIELD";
 
 const initialState = {
   loginPage: true,
-  username : "",
-  password : "",
-  usernameReg : "",
-  passwordReg : "",
-  registSuccess : '0',
-  loginSuccess : false,
-  userInformation : {
-    username : "",
-    color : ""
+  username: "",
+  password: "",
+  usernameReg: "",
+  passwordReg: "",
+  registSuccess: "0",
+  loginSuccess: false,
+  userInformation: {
+    username: "",
+    color: ""
   }
 };
 
@@ -27,34 +27,34 @@ export default (state = initialState, action) => {
     case CLEAR_FIELD:
       return {
         ...initialState
-      }
+      };
     case SET_FIELD:
       return {
         ...state,
         [action.key]: action.value
       };
     case LOGIN_FULFILLED:
-      if(action.payload.valid)
+      if (action.payload.valid)
         return {
           ...state,
           loginSuccess: true,
           userInformation: action.payload.userInformation,
-          username : "",
-          password : ""
+          username: "",
+          password: ""
         };
       else
-        return{
+        return {
           ...state,
-          loginSuccess : false
-        }
-      
+          loginSuccess: false
+        };
+
     case REGIST_FULFILLED:
       return {
         ...state,
-        registSuccess : action.payload,
-        usernameReg : "",
-        passwordReg : ""
-      }
+        registSuccess: action.payload,
+        usernameReg: "",
+        passwordReg: ""
+      };
     default:
       return state;
   }
@@ -66,38 +66,38 @@ export const setField = (key, value) => ({
   value
 });
 
-export const regist = (username,password) => ({
-  type : REGIST,
-  payload : axios
+export const regist = (username, password) => ({
+  type: REGIST,
+  payload: axios
     .post("http://localhost:8000/regist", {
-        username: username,
-        password : password
-      })
-      .then(function(response) {
+      username: username,
+      password: password
+    })
+    .then(function(response) {
       return response.data.valid;
-      })
-})
+    })
+});
 
-export const login = (username,password) => ({
+export const login = (username, password) => ({
   type: LOGIN,
   payload: axios
     .post("http://localhost:8000/login", {
       username: username,
-      password : password
+      password: password
     })
     .then(function(response) {
-      if(response.data.valid){
+      if (response.data.valid) {
         return {
-          valid : true,
-          userInformation : response.data.userInformation
-        }
+          valid: true,
+          userInformation: response.data.userInformation
+        };
       }
       return {
-        valid :  false,
-      }
+        valid: false
+      };
     })
 });
 
-export const clearField = () =>({
+export const clearField = () => ({
   type: CLEAR_FIELD
-})
+});
