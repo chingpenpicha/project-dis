@@ -19,11 +19,10 @@ const initialState = {
     username: "",
     color: ""
   },
-  portLog: ""
 };
 
 export default (state = initialState, action) => {
-  console.log(action);
+  //console.log(action);
   switch (action.type) {
     case CLEAR_FIELD:
       return {
@@ -67,10 +66,10 @@ export const setField = (key, value) => ({
   value
 });
 
-export const regist = (username, password) => ({
+export const regist = (username, password,ip) => ({
   type: REGIST,
   payload: axios
-    .post("http://10.207.179.194:8000/regist", {
+    .post("http://"+ip+"/regist", {
       username: username,
       password: password
     })
@@ -80,10 +79,10 @@ export const regist = (username, password) => ({
 });
 
 
-export const login = (username, password) => ({
+export const login = (username, password,ip) => ({
   type: LOGIN,
   payload: axios
-    .post("http://10.207.179.194:8000/login", {
+    .post("http://"+ip+"/login", {
       username: username,
       password: password
     })
@@ -103,3 +102,4 @@ export const login = (username, password) => ({
 export const clearField = () => ({
   type: CLEAR_FIELD
 });
+

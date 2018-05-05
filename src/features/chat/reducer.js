@@ -22,6 +22,9 @@ const GET_ALL_GROUP_FULFILLED = "GET_ALL_GROUP_FULFILLED";
 const GET_UNREAD = "GET_UNREAD";
 const GET_UNREAD_FULFILLED = "GET_UNREAD_FULFILLED";
 
+const SWAP = "SWAP";
+
+
 const initialState = {
   menuChange: false,
   userGroup: [{ groupName: "" }],
@@ -33,13 +36,28 @@ const initialState = {
   unreadMsg: [],
   newGroupName: "",
   socket : io("10.207.179.194:8000"),
-  port1: io("10.207.179.194:8000"),
-  port2: io("10.207.179.194:8000")
+  useIp : "10.207.179.194:8000",
+  ip1 : "10.207.179.194:8000",
+  ip2 : "10.207.179.194:8001"
 };
 
 export default (state = initialState, action) => {
-  console.log(action)
   switch (action.type) {
+    case SWAP :
+      //console.log("INSWAPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+      if(state.useIp === state.ip1)
+        return {
+          ...state,
+          useIp : "10.207.179.194:8001",
+          socket : io("10.207.179.194:8001")
+        }
+      else{
+        return{
+          ...state,
+          useIp : "10.207.179.194:8000",
+          socket : io("10.207.179.194:8000")
+        }
+      }
     case RESET_STATE:
       return {
         ...initialState
@@ -94,83 +112,83 @@ export const resetState = () => ({
   type: RESET_STATE
 });
 
-export const getAllGroup = username => ({
+export const getAllGroup = (username,ip) => ({
   type: GET_ALL_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/getUserMember", {
+    .post("http://"+ip+"/getUserMember", {
       userId: username
     })
     .then(function(response) {
-      console.log("resetState : " + response.data);
+      //console.log("resetState : " + response.data);
       return response.data;
     })
 });
 
-export const onUpdate = (username, allgroup, rowselect) => ({
+export const onUpdate = (username, allgroup, rowselect, ip) => ({
   type: ON_UPDATE,
   payload: axios
-    .post("http://10.207.179.194:8000/update", {
+    .post("http://"+ip+"/update", {
       userId: username,
       allgroup: allgroup,
       index: rowselect
     })
     .then(function(response) {
-      console.log("onUpdate : " + response.data);
+      //console.log("onUpdate : " + response.data);
       return response.data;
     })
 });
 
-export const getUserGroup = username => ({
+export const getUserGroup = (username,ip) => ({
   type: GET_USER_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/getUserGroup", {
+    .post("http://"+ip+"/getUserGroup", {
       username: username
     })
     .then(function(response) {
-      console.log("getUserGroup : " + response.data);
+      //console.log("getUserGroup : " + response.data);
       return response.data;
     })
 });
 
-export const createGroup = (username, group) => ({
+export const createGroup = (username, group, ip) => ({
   type: CREATE_GROUP,
   payload: axios
-    .post("http://10.207.179.194:8000/createGroup", {
+    .post("http://"+ip+"/createGroup", {
       groupName: group,
       userId: username
     })
     .then(function(response) {
-      console.log("createGroup : " + response.data);
+      //console.log("createGroup : " + response.data);
       return response.data;
     })
 });
 
-export const getGroupMember = groupName => ({
+export const getGroupMember = (groupName,ip) => ({
   type: GET_GROUP_MEMBER,
   payload: axios
-    .post("http://10.207.179.194:8000/getGroupMember", {
+    .post("http://"+ip+"/getGroupMember", {
       groupName: groupName
     })
     .then(function(response) {
-      console.log("getGroupMember : " + response.data);
+      //console.log("getGroupMember : " + response.data);
       return response.data;
     })
 });
 
-export const getUnread = (user, group) => ({
+export const getUnread = (user, group,ip) => ({
   type: GET_UNREAD,
   payload: axios
-    .post("http://10.207.179.194:8000/getUnRead", {
+    .post("http://"+ip+"/getUnRead", {
       userId: user,
       groupName: group
     })
     .then(function(response) {
-      console.log("getUnread : " + response.data);
+      //console.log("getUnread : " + response.data);
       return response.data;
     })
     .then(function(response) {
-      console.log("getUnread2 : " + response);
-      console.log(response);
+      //console.log("getUnread2 : " + response);
+      //console.log(response);
       if (response.result == "success") {
         const a = response.unreadmsg.map(e => {
           let b = {
@@ -203,3 +221,7 @@ export const setField = (key, value) => ({
   key: key,
   value: value
 });
+
+export const swap = () => ({
+  type : SWAP
+})

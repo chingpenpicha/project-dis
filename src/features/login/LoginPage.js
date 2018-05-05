@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import { setField, login, regist, clearField } from "./reducer";
+import { swap } from "../chat/reducer"
 import { Layout, Menu, Icon, Button } from "antd";
 import { bindActionCreators } from "redux";
 import { WrappedNormalLoginForm } from "./NormalLoginForm";
@@ -20,7 +21,9 @@ const mapStateToProps = state => {
     passwordReg: state.login.passwordReg,
     password: state.login.password,
     loginSuccess: state.login.loginSuccess,
-    registSuccess: state.login.registSuccess
+    registSuccess: state.login.registSuccess,
+    socket : state.chat.socket,
+    ip : state.chat.useIp
   };
 };
 
@@ -29,7 +32,8 @@ const mapDispatchToProps = (dispatch, props) => {
     setField: bindActionCreators(setField, dispatch),
     login: bindActionCreators(login, dispatch),
     regist: bindActionCreators(regist, dispatch),
-    clearField: bindActionCreators(clearField, dispatch)
+    clearField: bindActionCreators(clearField, dispatch),
+    swap : bindActionCreators(swap,dispatch)
   };
 };
 
@@ -37,6 +41,15 @@ class LoginPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+
+    this.props.socket.on("connect_error", function(err) {
+      props.socket.disconnect();
+      props.swap();
+    });
+
+    this.props.socket.on('disconnect',()=>{
+      
+    })
   }
 
   render() {
@@ -75,7 +88,7 @@ class LoginPage extends React.Component {
             <WrappedNormalLoginForm
               setField={(key, value) => this.props.setField(key, value)}
               login={() =>
-                this.props.login(this.props.username, this.props.password)
+                this.props.login(this.props.username, this.props.password,this.props.ip)
               }
               clearField={() => this.props.clearField()}
             />
@@ -121,7 +134,8 @@ class LoginPage extends React.Component {
               regist={() =>
                 this.props.regist(
                   this.props.usernameReg,
-                  this.props.passwordReg
+                  this.props.passwordReg,
+                  this.props.ip
                 )
               }
               registSuccess={this.props.registSuccess}

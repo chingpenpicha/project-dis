@@ -9,7 +9,8 @@ import {
   setField,
   createGroup,
   getUnread,
-  onUpdate
+  onUpdate,
+  swap
 } from "./reducer";
 import { Layout, Menu, Icon, Button, Popover, Table, Input } from "antd";
 import { bindActionCreators } from "redux";
@@ -30,7 +31,8 @@ const mapStateToProps = state => {
     currentGroup: state.chat.currentGroup,
     newGroupName: state.chat.newGroupName,
     menuChange: state.chat.menuChange,
-    socket : state.chat.socket
+    socket : state.chat.socket,
+    ip : state.chat.useIp
   };
 };
 
@@ -43,7 +45,8 @@ const mapDispatchToProps = (dispatch, props) => {
     setField: bindActionCreators(setField, dispatch),
     createGroup: bindActionCreators(createGroup, dispatch),
     getUnread: bindActionCreators(getUnread, dispatch),
-    onUpdate: bindActionCreators(onUpdate, dispatch)
+    onUpdate: bindActionCreators(onUpdate, dispatch),
+    swap : bindActionCreators(swap,dispatch)
   };
 };
 
@@ -58,14 +61,24 @@ class ChatPage extends React.Component {
   constructor(props) {
     super(props);
     this.props = props;
+
+    this.props.socket.on("connect_error", function(err) {
+      props.disconnect();
+      props.swap();
+ 
+    });
+
   }
+
+  
 
   state = {
     visible: false,
     selectedRows: this.props.rowSelected
   };
+  
   onSelectChange = selectedRows => {
-    console.log("selectedRowKeys changed: ", selectedRows);
+    //console.log("selectedRowKeys changed: ", selectedRows);
     this.setState({ selectedRows });
     this.props.setField("rowSelected", selectedRows);
   };
@@ -75,7 +88,7 @@ class ChatPage extends React.Component {
   };
   render() {
     if (this.props.queryGroup) {
-      this.props.getUserGroup(this.props.userInformation.username);
+      this.props.getUserGroup(this.props.userInformation.username,this.props.ip);
     }
     const { selectedRows } = this.state;
 
@@ -182,10 +195,10 @@ class ChatPage extends React.Component {
                             onClick={() => {
                               this.props.createGroup(
                                 this.props.userInformation.username,
-                                this.props.newGroupName
+                                this.props.newGroupName,this.props.ip
                               );
                               this.props.getAllGroup(
-                                this.props.userInformation.username
+                                this.props.userInformation.username,this.props.ip
                               );
                             }}
                           />
@@ -204,7 +217,7 @@ class ChatPage extends React.Component {
                           this.props.onUpdate(
                             this.props.userInformation.username,
                             this.props.allGroup,
-                            this.state.selectedRows
+                            this.state.selectedRows,this.props.ip
                           );
                           this.setState({ visible: false });
                         }}
@@ -243,7 +256,7 @@ class ChatPage extends React.Component {
                 height: "100%"
               }}
               onSelect={e => {
-                this.props.getGroupMember(e.key);
+                this.props.getGroupMember(e.key,this.props.ip);
                 this.props.socket.emit("leftgroup", {
                   groupName:this.props.currentGroup,
                   me : this.props.userInformation.username
@@ -251,7 +264,7 @@ class ChatPage extends React.Component {
                 this.props.setField("currentGroup", e.key);
                 this.props.getUnread(
                   this.props.userInformation.username,
-                  e.key
+                  e.key,this.props.ip
                 );
                 this.props.setField("menuChange", true);
               }}
